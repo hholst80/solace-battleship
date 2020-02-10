@@ -21,7 +21,14 @@ export class LandingPage {
    * @param params
    * @param routeConfig
    */
-  activate(params, routeConfig) {
-    // Connect to Solace
+  async activate(params, routeConfig) {
+      // Connect to Solace
+      try {          
+          await this.solaceClient.connect()
+          this.connectStatus = 'Connected to Solace!'
+      }
+      catch (error) {
+          this.connectStatus = `${error}!`
+      }
   }
 }

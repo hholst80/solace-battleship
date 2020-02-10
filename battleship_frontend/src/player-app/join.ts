@@ -21,9 +21,15 @@ export class Join {
    * @param params
    * @param routeConfig
    */
-  activate(params, routeConfig) {
+  async activate(params, routeConfig) {   
     // Connect to Solace
-
+    try {
+      await this.solaceClient.connect()
+      this.connectStatus = "Connected to Solace!";
+    } 
+    catch (error) {
+      this.connectStatus = `Failed to connect to Solace because of ${error}!`;
+    }
     //Set the name for the player from the route parameter
     this.player.name = params.player;
   }
@@ -31,7 +37,7 @@ export class Join {
   /**
    * Function to join a game - asks for the Player's name before continuing
    */
-  joinGame() {
+  async joinGame() {
     if (!this.playerNickname) {
       alert("Please enter a nickname before continuing");
       return;
@@ -43,7 +49,33 @@ export class Join {
 
     //Publish a join request and change the pageState to waiting if the join request succeeded
 
-    this.pageState = "WAITING";
+    let topicName: string = `${this.topicHelper.prefix}/JOIN-REQUEST/${this.player.getPlayerNameForTopic()}`;
+    let replyTopic: string = `${this.topicHelper.prefix}/JOIN-REPLY/${this.player.getPlayerNameForTopic()}/CONTROLLER}`;
+    try {
+      let msg: any = await this.solaceClient.sendRequest(topicName, JSON.stringify(playerJoined), replyTopic);
+      let joinResult: JoinResult = JSON.parse(msg.getBinaryAttachment());
+      if (joinResult.success) {
+        this.pageState = "WAITING";
+      } else {
+        this.pageState = "Join Request Failed - Player Already Joined!";
+      }
+    }
+    catch (error) {
+      this.pageState = "Join Request Failed!";
+    }
+    //this.solaceClient
+    //.sendRequest(topicName, JSON.stringify(playerJoined), replyTopic)
+    //.then((msg: any) => {
+    //  let joinResult: JoinResult = JSON.parse(msg.getBinaryAttachment());
+    //  if (joinResult.success) {
+    //    this.pageState = "WAITING";
+    //  } else {
+    //    this.pageStatus = "Join Request Failed - Player Already Joined!";
+    //  }
+    //})
+    //.catch(error => {
+    //  this.pageStatus = "Join Request Failed!";
+    //  });
   }
 
   detached() {}
