@@ -1,0 +1,12 @@
+{
+    "name": "foo",
+    "version": "1.2.3",
+    "description": "A packaged foo fooer for fooing foos",
+    "main": "foo.js",
+    "prettier": {
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "semi": false,
+        "singleQuote": true
+    }
+}
